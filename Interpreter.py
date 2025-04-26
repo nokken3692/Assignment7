@@ -7,6 +7,11 @@ from Bank import *
 # Revised: 4/24/25 debugged, 4/25/2025 changed return stmts      #
 ##################################################################
 
+
+######################################################################################################################
+#                                         interpreter                                                                #
+######################################################################################################################
+
 ###################################################################################
 # created a class for the action (deposit, withdraw)  with node position tracking #
 ###################################################################################
@@ -96,10 +101,14 @@ class Interpreter:
         current_account = node.account_id
         if current_account == None:
             raise Exception("Can't find the node's account id for CheckBalance")
-        #f-string is returned with information about the account's balance
         
-        new_bank = print(self.bank.account_balance(current_account))
-        return new_bank
+        ############################################################################################################
+        #uncomment the below if you want to return a bank object, this just didn't make sense to me to do.
+        #new_bank = print(self.bank.account_balance(current_account))
+        #return new_bank
+
+        #this just returns the actual account balance.
+        return self.bank.account_balance(current_account)
         
     ##################################################
     # this method is for traversing account creation #

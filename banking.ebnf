@@ -1,0 +1,38 @@
+(* Basic Elements *)
+char    ::= "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" ;
+digit   ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+symbol  ::= "$" ;
+
+(* Data Types *)
+integer ::= digit {digit} ;
+float   ::= integer "." integer | integer ;
+number  ::= float | integer ;
+amount  ::= [symbol] number ;
+name    ::= char {char} ;  (* For first and last names *)
+
+(* Account ID Format - 2 chars followed by 6 digits *)
+account_id ::= char char digit digit digit digit digit digit ;
+
+(* Date Format - MM/DD/YYYY *)
+date    ::= digit digit "/" digit digit "/" digit digit digit digit ;
+
+(* Keywords *)
+NEW      ::= "NEW" ;
+ACCOUNT  ::= "ACCOUNT" ;
+DEPOSIT  ::= "DEPOSIT" ;
+WITHDRAW ::= "WITHDRAW" ;
+CHECK    ::= "CHECK" ;
+BALANCE  ::= "BALANCE" ;
+EXIT     ::= "EXIT" | "QUIT" | "END" ;
+
+(* Command Structures *)
+exit_command             ::= EXIT ;
+deposit_statement        ::= DEPOSIT amount ACCOUNT account_id ;
+withdraw_statement       ::= WITHDRAW amount ACCOUNT account_id ;
+check_balance_statement  ::= CHECK BALANCE ACCOUNT account_id ;
+create_account_statement ::= NEW ACCOUNT name name number ;
+
+(* Program Structure *)
+action      ::= deposit_statement | withdraw_statement | check_balance_statement | create_account_statement ;
+transaction ::= date action ;
+program     ::= create_account_statement | action { action } | [create_account_statement] transaction { transaction } [exit_command] ;
