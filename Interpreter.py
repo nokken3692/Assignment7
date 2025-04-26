@@ -1,5 +1,6 @@
 from typing import ValuesView
 from BankAccount import *
+from Bank import *
 ##################################################################
 # Interpreter.py is the interpreter class file for using our DSL #
 # Written: 04/23/2025 by group 8                                 #
@@ -41,10 +42,10 @@ class Amount:
 
 class Interpreter:
     #this is the constructor where I initialize an empty account dict if I don't receive any from the main
-    accounts = {}
+
     #I needed a constructor, so when an instance of interpreter is created, a dictionary is created or received from main
-    def __init__(self, accounts):
-        self.accounts = accounts
+    def __init__(self, bank_instance):
+        self.bank = bank_instance
 
     ###################################################################################
     # the visit method visits each node of the AST and returns the method of the node #
@@ -91,14 +92,14 @@ class Interpreter:
     # this method is for visiting a check_balance #
     ###############################################
     def visit_CheckBalanceNode(self, node):
-        #print("Check balance visited")
-        #self.accounts is the account dictionary, node.accound_id is the account id extracted from the node and check_balance is the check balance method in BankAccount
-        #every instance of calling self.accounts[] is indexing an account by the account_id
-        current_account = self.accounts[node.account_id]
+        #determine the account id
+        current_account = node.account_id
         if current_account == None:
-            return None
+            raise Exception("Can't find the node's account id for CheckBalance")
         #f-string is returned with information about the account's balance
-        return f"Balance is: ${current_account.check_balance()}"
+        
+        new_bank = print(self.bank.account_balance(current_account))
+        return new_bank
         
     ##################################################
     # this method is for traversing account creation #
@@ -107,49 +108,44 @@ class Interpreter:
         #print(f"Creating account for {node.first_name} {node.last_name} ")
         #here is where we determine the account ID based on the user inputted first and last name, and 6 random numbers
         account_id = BankAccount.generate_account_id(node.first_name, node.last_name)
-        if account_id in self.accounts:
-            print("Account already exists")
-            return None
         #here we create the instance of bank account and store it in the accounts dictionary
-        self.accounts[account_id] = BankAccount(account_id, node.first_name, node.last_name, node.initial_balance)
-        #f-string is returned that says that the account was created
-        return f"Account created for {node.first_name} {node.last_name} "
+        new_bank = self.bank.add_account(account_id, BankAccount(account_id, node.first_name, node.last_name, node.initial_balance))
+        #returns new bank instance
+        return new_bank
         
     ##############################################
     # this method is for visiting a deposit node #
     ##############################################
     def visit_DepositNode(self, node):
-        current_account = self.accounts[node.account_id]
+        current_account = node.account_id
         if current_account == None:
-            print("Account not found")
-            return None
+            raise Exception("Can't find the node's account id")
         #I index the account and call deposit with the node's specified amount
-        self.accounts[node.account_id].deposit(node.amount)
+
+        new_bank = self.bank.deposit_in_account(current_account, node.amount)
         #returns f-string with information about deposit
-        return f"{current_account.first_name} {current_account.last_name} deposited {node.amount}"
+        return new_bank
             
     ##################################################################
     # this method is called if visit finds a program node in the AST #
     ##################################################################
     def visit_ProgramNode(self, node):
-        output_list = [] #I found out I need a list to collect output from visited nodes
+        
         #if its a create statement then visit create bank account
         # stmt is determined by the keyword of what the transaction is, ie DEPOSIT, WITHDRAW CHECK BALANCE
             
         #if it is a transaction then visit the transaction node
         #a for loop to handle multiple transactions
         for stmt in node.statements:
-            output = self.visit(stmt)
-            if output is not None:
-                output_list.append(output)
-        return output_list
+            new_bank = self.visit(stmt)
+        return new_bank
             
     ###########################################
     # this method visits the transaction node #
     ###########################################
     def visit_TransactionNode(self, node):
         #if a transaction node is found, the transaction visits the specific transaction
-        print(f"Transaction on {node.date}")
+        #print(f"Transaction on {node}")
         #transaction goes to action
         self.visit(node.action)
         
@@ -157,15 +153,14 @@ class Interpreter:
     # this method is for visiting a withdraw node #
     ###############################################
     def visit_WithdrawNode(self, node):
-        current_account = self.accounts[node.account_id]
+        #determining the current account through the node's account id
+        current_account = node.account_id
+        #raises error if the current account id doesn't have value
         if current_account == None:
-            print("Account not found")
-            return None
-        #performs withdraw on the specified account
-        current_account.withdraw(node.amount)
-        #f-string returned with a display of how much they withdrew
-        return f"""{current_account.first_name} {current_account.last_name} withdrew {node.amount}
-               they have a remaining balance of {current_account.balance} """
+            raise Exception("Can't find the node's account id")
+        #performs withdraw from account method if no exception is raised
+        self.bank.withdraw_from_account(node.account_id, node.amount)
+        return self.bank
         
         
 
